@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/agbaje24i/devops-cloud-project
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
@@ -26,4 +33,23 @@ jobs:
         run: python -m pytest -v
 
       - name: Build Docker image
+        if: github.event_name == 'pull_request'
         run: docker build -t devops-cloud-dashboard:ci .
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/agbaje24i/devops-cloud-project:latest
+            ghcr.io/agbaje24i/devops-cloud-project:${{ github.sha }}
