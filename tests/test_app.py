@@ -1,18 +1,17 @@
 from app.main import app
 
 
-def test_homepage_returns_project_status():
+def test_homepage_returns_dashboard():
     app.testing = True
 
     with app.test_client() as client:
         response = client.get("/")
 
     assert response.status_code == 200
-
-    data = response.get_json()
-    assert data["project"] == "DevOps Cloud Status Dashboard"
-    assert data["status"] == "running"
-    assert data["message"] == "Application is working!"
+    assert b"DevOps Cloud Status Dashboard" in response.data
+    assert b"System Overview" in response.data
+    assert b"GitHub Actions" in response.data
+    assert b"Microsoft Azure" in response.data
 
 
 def test_health_endpoint_returns_healthy():
